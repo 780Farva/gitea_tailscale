@@ -3,7 +3,6 @@
 set -e  # Exit immediately if any command fails
 
 # Define variables
-TS_CONFIG_DEST="/config/ts_config.json"
 VOLUME_NAME="gitea_ts_gitea_config"
 
 echo "🚀 Starting the Docker Compose environment..."
