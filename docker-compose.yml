@@ -1,12 +1,37 @@
 services:
-  server:
-    image: docker.io/gitea/gitea:1.23.4-rootless
-    restart: always
+  ts-git:
+    image: tailscale/tailscale:latest
+    container_name: ts-git
+    hostname: git
+    environment: 
+      - TS_AUTHKEY=${TS_AUTHKEY}
+      - TS_SERVE_CONFIG=/config/ts_config.json
+      - TS_STATE_DIR=/var/lib/tailscale
     volumes:
-      - ./data:/var/lib/gitea
-      - ./config:/etc/gitea
+      - ts_gitea_state:/var/lib/tailscale
+      - ts_gitea_config:/config
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - net_admin
+      - sys_module
+    restart: unless-stopped
+  git:
+    image: docker.io/gitea/gitea:1.23.4
+    container_name: git
+    depends_on:
+      - ts-git
+    environment:
+      - USER_UID=1000
+      - USER_GID=1000
+    network_mode: service:ts-git
+    volumes:
+      - gitea_data:/data
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
-    ports:
-      - "3000:3000"
-      - "2222:2222"
+    restart: unless-stopped
+
+volumes:
+  ts_gitea_state:
+  ts_gitea_config:
+  gitea_data:
